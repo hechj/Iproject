@@ -2,7 +2,7 @@
 分析指数估值
 中位数，百分位数，市盈率
 '''
-import datetime
+from datetime import *
 from scipy.stats import rankdata
 
 import pandas as pd
@@ -16,8 +16,7 @@ mpl.rcParams['font.sans-serif'] = ['SimHei']
 mpl.rcParams['axes.unicode_minus'] = False
 pro = ts_pro()
 
-s_date = "20050408"
-e_date = '20210610'
+s_date = "20120312"
 
 
 # 返回数组里元素的百分位数
@@ -26,22 +25,21 @@ def calc_percentile(a, method='min'):
 
 
 def get_pe(index_code, x_plot, ax_x, ax_t):
-    df = pro.index_dailybasic(ts_code=index_code, start_date=s_date, end_date=e_date,
+    df = pro.index_dailybasic(ts_code=index_code, start_date=s_date,
                               fields='ts_code,trade_date,turnover_rate,pe,pe_ttm,pb')
 
     df = df.sort_values(by='trade_date')
     df['per'] = calc_percentile(df['pe_ttm'].values)
     print(index_code, "pe_ttm长度:", float(len(df['pe_ttm'].values)))
-    print(df['pe_ttm'].values)
 
     print(df[['ts_code', 'trade_date', 'pe', 'pe_ttm', 'per']])
 
     df.index = pd.to_datetime(df["trade_date"])
 
-    df_i = pro.index_daily(ts_code=index_code, start_date=s_date, end_date=e_date,
-                           fields='ts_code,trade_date,close')
+    df_i = pro.index_daily(ts_code=index_code, start_date=s_date,
+                           fields='ts_code,trade_date,close,amount')
     df_i = df_i.sort_values(by='trade_date')
-    df_i['per'] = calc_percentile(df_i['close'].values)
+    df_i['per'] = calc_percentile(df_i['amount'].values)
     print(index_code, "close长度:", float(len(df_i['close'].values)))
     df_i.index = pd.to_datetime(df_i["trade_date"])
     print(df_i)
@@ -53,12 +51,10 @@ def get_pe(index_code, x_plot, ax_x, ax_t):
         plt.setp(ax_x.get_xticklabels(), visible=False)
     else:
         plt.xticks(rotation=270)  # 旋转270度
-        plt.title("".format(datetime.datetime.now().strftime('%Y-%m-%d')), fontproperties='SimHei',
-                  fontsize=18)
 
     ax_x.set_ylabel(get_t_name(index_code), fontproperties='SimHei', fontsize=15)
     ax_x.plot(df.pe_ttm, label='市盈率', c='b')
-    ax_t.plot(df.per, label='历史百分位', c='r')
+    ax_t.plot(df_i.per, label='历史百分位', c='r')
     ax_x.legend(loc=2, prop={'family': 'SimHei', 'size': 12})
     ax_t.legend(loc=1, prop={'family': 'SimHei', 'size': 12})
     ax_x.axhline(y=df.pe_ttm.median(), ls='-', c='black')
@@ -79,7 +75,8 @@ if __name__ == '__main__':
 
     ax1 = fig.add_subplot(311)
     ax1_t = ax1.twinx()
-    plt.title("指数市盈率TTM与历史百分位", c='green')
+    prt_date = (datetime.today()+timedelta(-1)).strftime(format="%Y%m%d")
+    plt.title(prt_date+"\n指数市盈率TTM与成交量历史百分位", c='green')
     get_pe('399006.SZ', False, ax1, ax1_t)  # 创业板
     ax2 = fig.add_subplot(312, sharex=ax1)
     ax2_t = ax2.twinx()

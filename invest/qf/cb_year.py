@@ -49,7 +49,8 @@ def draw_cb():
                func(df, '2017-12-29', 2) / func(df, '2017-01-03', 2) - 1,
                func(df, '2018-12-28', 2) / func(df, '2018-01-02', 2) - 1,
                func(df, '2019-12-31', 2) / func(df, '2019-01-02', 2) - 1,
-               func(df, '2020-10-13', 2) / func(df, '2020-01-02', 2) - 1]
+               func(df, '2020-12-31', 2) / func(df, '2020-01-02', 2) - 1,
+               func(df, '2021-12-31', 2) / func(df, '2021-01-04', 2) - 1]
 
     paths = "E:\\MyStudy\\Jupter_prj\\"
     data = pd.read_csv(paths + '000832.csv', encoding='gbk', header=0)
@@ -61,7 +62,7 @@ def draw_cb():
     data = data['2008-01-02'::]
     str_date = ['2008', '2009', '2010', '2011', '2012',
                 '2013', '2014', '2015', '2016', '2017',
-                '2018', '2019', '2020-10-13']
+                '2018', '2019', '2020', '2021']
     year_rate = [func(data, '2008-12-31', 1) / func(data, '2008-01-02', 1) - 1,
                  func(data, '2009-12-31', 1) / func(data, '2009-01-05', 1) - 1,
                  func(data, '2010-12-31', 1) / func(data, '2010-01-04', 1) - 1,
@@ -74,7 +75,8 @@ def draw_cb():
                  func(data, '2017-12-29', 1) / func(data, '2017-01-03', 1) - 1,
                  func(data, '2018-12-28', 1) / func(data, '2018-01-02', 1) - 1,
                  func(data, '2019-12-31', 1) / func(data, '2019-01-02', 1) - 1,
-                 func(data, '2020-10-13', 1) / func(data, '2020-01-02', 1) - 1]
+                 func(data, '2020-12-31', 1) / func(data, '2020-01-02', 1) - 1,
+                 func(data, '2021-12-31', 1) / func(data, '2021-01-04', 1) - 1]
 
     for i in year_rate:
         ydata1.append(float("%.2f" % (i * 100)))
@@ -86,7 +88,7 @@ def draw_cb():
     bar = Bar('年收益率', '(%)', width=1200, height=800)
     bar.add('沪深300', x_axis=str_date, y_axis=ydata2, is_label_show=True, xaxis_rotate=45,\
             label_pos='top')
-    bar.add('中债指数', x_axis=str_date, y_axis=ydata1, is_label_show=True, xaxis_rotate=45,\
+    bar.add('转债指数', x_axis=str_date, y_axis=ydata1, is_label_show=True, xaxis_rotate=45,\
             label_pos='bottom')
     bar.render('bar1.html')
 

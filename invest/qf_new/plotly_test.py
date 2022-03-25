@@ -3,7 +3,7 @@ import plotly
 import plotly.express as px
 import tushare as ts
 
-ts.set_token('f6b511d8d4529f19319e1861edadda749e64a5b8573102deec80cfd8')
+ts.set_token('673c8a107006b7c4a4d1a8528420874bb99e848c0241ffb95ef24f3b')
 
 s_date = '20150105'
 df = ts.pro_bar(ts_code='601318.SH',  adj='qfq', start_date=s_date,

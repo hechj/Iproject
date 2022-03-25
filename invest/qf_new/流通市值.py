@@ -20,7 +20,7 @@ pro = ts_pro()
 startdate = '20070301'
 enddate = None
 
-t_names = ['中国平安', '新大陆']
+t_names = ['中国平安', '中国交建']
 
 
 def drawline_day(name, sdate, stackcolor='#00BFFF', linecolor='red'):

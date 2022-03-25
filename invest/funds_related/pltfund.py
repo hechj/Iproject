@@ -7,10 +7,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from pandas.plotting import register_matplotlib_converters
 # in[2]
-from matplotlib.font_manager import _rebuild
-from matplotlib.ticker import MultipleLocator
 
-_rebuild()
+from matplotlib.ticker import MultipleLocator
 
 
 # in[3]
@@ -127,8 +125,8 @@ def draw_fund_trend(fund_data_list, list2):
     # ax.xaxis.set_major_locator(MultipleLocator(7))  # 间隔7
     # ax.xaxis.set_major_locator(mdates.DayLocator(interval=7))  # 日期间隔
 
-    print('fund_data_list=',fund_data_list)
-    print('list2=',list2)
+    print('fund_data_list=', fund_data_list)
+    print('list2=', list2)
 
     t1 = [0 for x in range(len(fund_data_list[0].jjrealzzl))]
     t2 = [0 for x in range(len(list2[0].jjrealzzl))]

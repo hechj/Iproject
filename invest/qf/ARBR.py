@@ -72,8 +72,7 @@ def get_data(code, n=120):
 
 # 计算AR、BR指标
 def arbr(stock, n=120):
-    code = get_t_code(stock)
-    df = get_data(code, n)[['open', 'high', 'low', 'close']]
+    df = get_data(stock, n)[['open', 'high', 'low', 'close']]
     df['HO'] = df.high - df.open
     df['OL'] = df.open - df.low
     df['HCY'] = df.high - df.close.shift(1)
@@ -109,7 +108,9 @@ if __name__ == '__main__':
 
     # plot_arbr('创业板指', n=250)
     # plot_arbr('沪深300', n=250)
-    plot_arbr('中国平安', n=1000)
+    # keyword = input('请输入股票名字:')
+    # plot_arbr(keyword, n=1000)
+    plot_arbr('601318.SH', n=1000)
     plt.close()
 
 '''

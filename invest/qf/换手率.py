@@ -10,8 +10,6 @@ import matplotlib.pyplot as plt
 from pandas.plotting import register_matplotlib_converters
 from invest.investbase import ts_pro
 
-
-
 pro = ts_pro()
 
 

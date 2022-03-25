@@ -8,5 +8,4 @@ cur =conn.cursor
 print(cur)
 print(conn)
 
-
 conn.close

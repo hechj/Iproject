@@ -33,6 +33,7 @@ def getWorth(fscode):
     print(name, code)
     return netWorth, ACWorth
 
+
 def getAllCode():
     url = 'http://fund.eastmoney.com/js/fundcode_search.js'
     content = requests.get(url)
@@ -64,7 +65,6 @@ for code in allCode:
     i = i + 1
     fundCodeFile.write("\n")
     fundCodeFile.write("-" + code + "-")
-
 
     """
     netWorthFile.write("\'" + code + "\',")

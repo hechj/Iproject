@@ -37,5 +37,6 @@ def draw_stock(code):
 
 if __name__ == '__main__':
     register_matplotlib_converters()
-    draw_stock(get_t_code('中国平安'))
+    keyword = input('请输入股票名字:')
+    draw_stock(get_t_code(keyword))
     plt.close()

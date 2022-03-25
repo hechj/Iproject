@@ -2,10 +2,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from invest.investbase import ts_pro
+import empyrical
 
-from pylab import mpl
+import matplotlib as mpl
+# pandas赋值老提示警告
+import warnings
 
-mpl.rcParams['font.sans-serif'] = ['SimHei']
+warnings.filterwarnings('ignore')
+
+mpl.rcParams['font.sans-serif'] = ['KaiTi', 'SimHei', 'FangSong']
 mpl.rcParams['axes.unicode_minus'] = False
 
 pro = ts_pro()
@@ -68,11 +73,23 @@ def North_Strategy(data, window, stdev_n, cost):
     df['ret'] = df.close / df.close.shift(1) - 1
     df.dropna(inplace=True)
 
+    # 北向资金按月求和
+
+    # df['month'] = df.index.to_period('M')
+    # df_sum = df.groupby(df.month)['北向资金'].sum().reset_index()
+    # df_sum['month'] = df_sum['month'].map(lambda x: x.asfreq('D', 'end').to_timestamp())
+
+    df['week'] = df.index.to_period('W')
+    df_sum = df.groupby(df.week)['北向资金'].sum().reset_index()
+    df_sum['week'] = df_sum['week'].map(lambda x: x.asfreq('D', 'end').to_timestamp())
+
+    print(df_sum)
     # 设计买卖信号
     # 当日北向资金突破上轨线发出买入信号设置为1 且持仓为空
     # 当日北向资金跌破下轨线发出卖出信号设置为0
     df['position'] = np.nan
     df['signal'] = np.nan
+    df = df.copy()
     flag = 0
     for i in range(1, df.shape[0] - 1):
         if df['北向资金'][i] > df.upper[i] and df['position'][i - 1] != 1:
@@ -83,6 +100,7 @@ def North_Strategy(data, window, stdev_n, cost):
             df['signal'][i] = 0
             flag = 0
 
+        df = df.copy()
         if flag == 1:
             df['position'][i] = 1
         else:
@@ -108,7 +126,14 @@ def North_Strategy(data, window, stdev_n, cost):
     # 计算标的、策略、指数的累计收益率
     df['策略净值'] = (df.capital_ret + 1.0).cumprod()
     df['指数净值'] = (df.ret + 1.0).cumprod()
-    return df
+    return df, df_sum
+
+
+'''   
+    DataFrame.cummax(axis=None, skipna=True, *args, **kwargs)
+    返回一个DataFrame或Series轴上的累积最大值。
+    返回包含累积最大值的相同大小的DataFrame或Series。
+'''
 
 
 def performance(df, name):
@@ -128,13 +153,34 @@ def performance(df, name):
     # 计算总收益率、年化收益率和风险指标
     total_ret = df[['策略净值', '指数净值']].iloc[-1] - 1
     annual_ret = pow(1 + total_ret, 250 / len(df1)) - 1
+
     dd = (df[['策略净值', '指数净值']].cummax() - df[['策略净值', '指数净值']]) / \
          df[['策略净值', '指数净值']].cummax()
+    print("---")
+    print(dd)
     d = dd.max()
     beta = df[['capital_ret', 'ret']].cov().iat[0, 1] / df['ret'].var()
-    alpha = (annual_ret['策略净值'] - annual_ret['指数净值'] * beta)
+    alpha = annual_ret['策略净值'] - annual_ret['指数净值'] * beta
     exReturn = df['capital_ret'] - 0.03 / 250
-    sharper_atio = np.sqrt(len(exReturn)) * exReturn.mean() / exReturn.std()
+    print('----------')
+    print(total_ret)
+    print(annual_ret)
+    print(len(exReturn), '标准差:', df['capital_ret'].std(), exReturn.std())
+    print('日平均无风险回报:', exReturn.mean())
+
+    alpha2, beta2 = empyrical.alpha_beta(returns=df['capital_ret'], factor_returns=df['ret'],
+                                         annualization=250)
+
+    # 无风险收益，默认3
+    rf = 0.03 / 250.0
+    arr = df['capital_ret']
+    sharpe_r = empyrical.sharpe_ratio(arr, rf, annualization=len(df['capital_ret']))
+
+    vol_annual1 = np.sqrt(250) * arr.std()
+    vol_annual2 = np.sqrt(250) * df['ret'].std()
+    print(f'策略年化波动率为： {round(vol_annual1 * 100, 2)}%')
+    print(f'{name}年化波动率为： {round(vol_annual2 * 100, 2)}%')
+    sharper_atio = np.sqrt(len(exReturn)) * exReturn.mean() / df['capital_ret'].std()
     TA1 = round(total_ret['策略净值'] * 100, 2)
     TA2 = round(total_ret['指数净值'] * 100, 2)
     AR1 = round(annual_ret['策略净值'] * 100, 2)
@@ -150,43 +196,55 @@ def performance(df, name):
     print(f'总收益率：  策略：{TA1}%，{name}：{TA2}%')
     print(f'年化收益率：策略：{AR1}%, {name}：{AR2}%')
     print(f'最大回撤：  策略：{MD1}%, {name}：{MD2}%')
-    print(f'策略Alpha： {round(alpha, 2)}, Beta：{round(beta, 2)}，夏普比率：{S}')
+    print(f'策略Alpha： {alpha},{alpha2}, Beta：{beta},{beta2}，夏普比率：{sharper_atio},{sharpe_r}')
 
 
 # 对策略累计收益率进行可视化
-def plot_performance(df, name):
+def plot_performance(df, df2, name):
+    fig = plt.figure()
+    plt.style.use("ggplot")
+
+    ax1 = fig.add_subplot(111)
+    ax2 = ax1.twinx()
     d1 = df[['策略净值', '指数净值', 'signal']]
-    d1[['策略净值', '指数净值']].plot(figsize=(15, 7))
+    ax1.plot(df['策略净值'], label='策略净值', linestyle='--', linewidth=1, alpha=1)
+    ax1.plot(df['指数净值'], label='指数净值', linestyle='--', linewidth=1, alpha=1)
+
+    ax2.plot(df2.week, df2['北向资金'], label='北向资金', marker='o', linewidth=0.8, alpha=0.5, c='blue')
+    # d1[['策略净值', '指数净值']].plot(figsize=(15, 7))
 
     buy = []
     sell = []
     for i in d1.index:
-        v = d1['指数净值'][i]
+        v = d1['策略净值'][i]
         if d1.signal[i] == 1:
-            plt.scatter(i, v, c='r')
+            ax1.scatter(i, v, c='r')
             buy.append(i.strftime('%Y%m%d'))
         if d1.signal[i] == 0:
-            plt.scatter(i, v, c='g')
+            ax1.scatter(i, v, c='g')
             sell.append(i.strftime('%Y%m%d'))
     print('买入点:', buy)
     print('卖出点:', sell)
 
     plt.title(name + '—' + '北向资金择时交易策略回测', size=15)
     plt.xlabel('')
-    ax = plt.gca()
-    ax.spines['right'].set_color('none')
-    ax.spines['top'].set_color('none')
+
+    ax1.spines['top'].set_color('none')
+    ax2.spines['top'].set_color('none')
+    # 显示图例
+    ax1.legend(loc=2)
+    ax2.legend(loc=1)
     plt.show()
 
 
 # 将上述函数整合成一个执行函数
-def main(code='000300.SH', start='20190102', end='20210111', window=252, stdev_n=1.5, cost=0.01):
+def main(code='000300.SH', start='20190102', end='20210111', window=250, stdev_n=1.5, cost=0.01):
     code_index = get_index_data(code, start, end)
     north_data = get_north_money(start, end)
     result_df = code_index.join(north_data['north_money'], how='inner')
     result_df.rename(columns={'north_money': '北向资金'}, inplace=True)
     result_df = result_df[['close', 'open', '北向资金']].dropna()
-    df = North_Strategy(result_df, window, stdev_n, cost)
+    df, df_m = North_Strategy(result_df, window, stdev_n, cost)
     df.to_csv('north_data.csv', encoding='gbk')
     print(df[['北向资金', 'position', 'signal']].tail(20))
     name = list(indexs.keys())[list(indexs.values()).index(code)]
@@ -194,7 +252,7 @@ def main(code='000300.SH', start='20190102', end='20210111', window=252, stdev_n
     startDate = df.index[0].strftime('%Y%m%d')
     print(f'回测期间：{startDate}—{end}')
     performance(df, name)
-    plot_performance(df, name)
+    plot_performance(df, df_m, name)
 
 
 if __name__ == "__main__":
@@ -203,8 +261,8 @@ if __name__ == "__main__":
     indexs = {'上证综指': '000001.SH', '深证成指': '399001.SZ', '沪深300': '000300.SH',
               '创业板指': '399006.SZ', '上证50': '000016.SH', '中证500': '000905.SH',
               '中小板指': '399005.SZ', '上证180': '000010.SH'}
-    start = '20141117'
-    end = '20210223'
+    start = '20180104'
+    end = '20220125'
 
     index_data = pd.DataFrame()
     for name, code in indexs.items():

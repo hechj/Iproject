@@ -5,24 +5,29 @@ import baostock as bs
 import tushare as ts
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+from datetime import datetime
+import matplotlib.ticker as ticker
 import numpy as np
 from pandas.plotting import register_matplotlib_converters
 
 # 设置token，只需要在第一次调用或者token失效时设置
 # 设置完成后，之后就不再需要这一个命令了
 
+s_date = "20190102"
 # python 量化
-ts.set_token('f6b511d8d4529f19319e1861edadda749e64a5b8573102deec80cfd8')
+ts.set_token('673c8a107006b7c4a4d1a8528420874bb99e848c0241ffb95ef24f3b')
+
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 
 def get_from_ts_day():
     index_code1 = '399001.SZ'
     index_code2 = '000001.SH'
     pro = ts.pro_api()
-    df1 = pro.index_daily(ts_code=index_code1, start_date='20200102',
+    df1 = pro.index_daily(ts_code=index_code1, start_date=s_date,
                           fields='ts_code,trade_date,open,high,low,close,vol,amount')
-    df2 = pro.index_daily(ts_code=index_code2, start_date='20200102',
+    df2 = pro.index_daily(ts_code=index_code2, start_date=s_date,
                           fields='ts_code,trade_date,open,high,low,close,vol,amount')
 
     df1 = df1.sort_values(by='trade_date')
@@ -31,7 +36,6 @@ def get_from_ts_day():
     # df2.index = pd.to_datetime(df2["trade_date"])
     plt.style.use('seaborn-whitegrid')  # switch to seaborn style
     fig = plt.figure(figsize=(16, 9))
-    ax = fig.add_subplot(111)
 
     plt.xticks(rotation=270)  # 旋转270度
 
@@ -45,7 +49,8 @@ def get_from_ts_day():
     plt.plot(df.amount)
 
     # 0706天量？
-    axamout = df.loc[df.index == '20200706', 'amount'].values[0]
+    # axamout = df.loc[df.index == '20200706', 'amount'].values[0]
+    axamout = df.loc[:, 'amount'].max()
     plt.axhline(y=axamout, color="red")
     # plt.scatter(df.index , df['amount'], alpha=0.8)
     plt.savefig('png\day.png')
@@ -55,7 +60,7 @@ def get_from_ts_day():
 
 def get_from_ts_code_day(index_code):
     pro = ts.pro_api()
-    df = pro.index_daily(ts_code=index_code, start_date='20200102',
+    df = pro.index_daily(ts_code=index_code, start_date=s_date,
                          fields='ts_code,trade_date,open,high,low,close,vol,amount')
 
     df = df.sort_values(by='trade_date')
@@ -77,7 +82,8 @@ def get_from_ts_code_day(index_code):
     # print('data2', data2)
     plt.scatter(data2.index, data2.amt, s=np.pi * 3 ** 2, c='red', alpha=0.8)
     # 0706天量？
-    axamout = df.loc[df.index == '2020-07-07', 'amount'].values[0]
+    # axamout = df.loc[df.index == '2020-07-07', 'amount'].values[0]
+    axamout = df.loc[:, 'amount'].max()
     plt.axhline(y=axamout, color="red")
     # plt.savefig('png\day.png')
     plt.show()
@@ -97,27 +103,31 @@ def get_from_ts_week():
     }
     '''
 
-    df_weekly = pro.index_weekly(ts_code='399006.SZ', start_date='20200102',
+    df_weekly = pro.index_weekly(ts_code='000300.SH', start_date=s_date,
                                  fields='ts_code,trade_date,open,high,low,close,vol,amount')
-    print(df_weekly.head(5))
 
-    # df_weekly.index = pd.to_datetime(df_weekly["trade_date"])
     df_weekly = df_weekly.sort_values(by='trade_date')
+    print(df_weekly.head(5))
     plt.style.use('seaborn-whitegrid')  # switch to seaborn style
     fig = plt.figure(figsize=(16, 9))
     ax = fig.add_subplot(111)
+    stockline = [datetime.strptime(d, '%Y%m%d').date() for d in df_weekly.trade_date]
 
-    plt.xticks(rotation=270)  # 旋转270度
-    df_weekly.set_index('trade_date', inplace=True)
-    # plt.plot(df_basic.pe_ttm)
-    plt.plot(df_weekly.amount)
+    # plt.xticks(rotation=270)  # 旋转270度
+    fig.autofmt_xdate()
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(base=df_weekly.index.size/10))
+
+    ax.plot(df_weekly.trade_date, df_weekly.amount)
+    # plt.tight_layout()
     # plt.axhline(y=df_basic.pe_ttm[0], color="red")
 
     # 0228周天量
-    axamout = df_weekly.loc[df_weekly.index == '20200228', 'amount'].values[0]
-    plt.axhline(y=axamout, color="red")
-    plt.scatter(df_weekly.index, df_weekly['amount'], alpha=0.8)
-    plt.savefig('png\sh000001_week.png')
+    # axamout = df_weekly.loc[df_weekly.trade_date == '20200228', 'amount'].values[0]
+    axamout = df_weekly.loc[:, 'amount'].max()
+
+    ax.axhline(y=axamout, color="red")
+    ax.scatter(df_weekly.trade_date, df_weekly['amount'], alpha=0.8)
+    plt.savefig('png\week.png')
     plt.show()
     plt.close()
 
@@ -140,8 +150,8 @@ def get_from_baostock():
     # 主题指数，例如：sh.000015 红利指数，sh.000063 上证周期 等；
 
     # 详细指标参数，参见“历史行情指标参数”章节 w代表周线
-    rs = bs.query_history_k_data_plus(code="sh.000300", fields=
-    "date,code,open,high,low,close,volume,amount,pctChg",
+    rs = bs.query_history_k_data_plus(code="sh.000300",
+                                      fields="date,code,open,high,low,close,volume,amount,pctChg",
                                       start_date='2020-01-02', end_date='2020-08-31', frequency='d')
     print('query_history_k_data_plus respond error_code:' + rs.error_code)
     print('query_history_k_data_plus respond  error_msg:' + rs.error_msg)
@@ -163,6 +173,6 @@ def get_from_baostock():
 
 if __name__ == '__main__':
     register_matplotlib_converters()
-    # get_from_baostock()
-    # get_from_ts_code_day('000300.SH')  # 创业板
-    get_from_ts_day()
+    # get_from_ts_week()
+    get_from_ts_code_day('000300.SH')
+    # get_from_ts_day()

@@ -81,7 +81,7 @@ def spider(fundcode):
     将爬取的基金净值数据储存至本地csv文件
     '''
     html = get_one_page(fundcode)
-    # print(html)
+    print(html)
     info = parse_one_page(html)
     total_page = info['total_page']
     print(fundcode + "总页数:", total_page)

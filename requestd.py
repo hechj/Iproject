@@ -51,7 +51,7 @@ if __name__ == '__main__':
     print(data_one)
 
     for value in data_one:
-        if ('A030101_sj' in value['code']):
+        if 'A030101_sj' in value['code']:
             year.append(value['code'][-4:])
             population.append(int(value['data']['strdata']))
 

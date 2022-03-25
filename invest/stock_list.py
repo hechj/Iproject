@@ -23,6 +23,8 @@ def get_code_list(date='20201202'):
     return stock_list
 
 
-Clist = get_code_list()
+# Clist = get_code_list()
+# print(Clist)
 
-print(Clist)
+data = pro.stock_basic(ts_code='600153.SH', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
+print(data)

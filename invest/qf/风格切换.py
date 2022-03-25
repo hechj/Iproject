@@ -9,7 +9,7 @@ from invest.investbase import ts_pro
 
 pro = ts_pro()
 s_date = '20100601'  # 深圳证券交易所于2010年6月1日起正式编制和发布创业板指数
-df_300 = pro.index_daily(ts_code='000300.SH', start_date=s_date,
+df_300 = pro.index_daily(ts_code='000016.SH', start_date=s_date,
                          fields='ts_code,trade_date,close')
 df_300 = df_300.sort_values(by='trade_date')
 df_300.index = pd.to_datetime(df_300["trade_date"])
@@ -46,10 +46,10 @@ ax.set_xlim([df_300.index[0], df_300.index[nums - 1]])
 plt.gcf().autofmt_xdate()
 
 plt.grid(b='major', color='orange', linestyle='--', linewidth=1, alpha=0.15)
-line1, = ax.plot(x, y1, label="沪深300", linestyle='-', linewidth=1, color='red')
+line1, = ax.plot(x, y1, label="上证50", linestyle='-', linewidth=1, color='red')
 line2, = ax.plot(x, y2, label="创业板", linestyle='-', linewidth=1, color='blue')
 plt.legend()
-plt.title("大小盘对比", fontproperties='SimHei', fontsize=18)
+plt.title("风格切换", fontproperties='SimHei', fontsize=18)
 ax.set_ylabel(r"收益率(%)", fontproperties='SimHei', fontsize=15)
 
 

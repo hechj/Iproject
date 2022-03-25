@@ -10,9 +10,9 @@ ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
 
-def drawline(tcode, sdate, edate):
+def drawline(tcode, sdate):
     # 前复权处理
-    datadf = ts.pro_bar(ts_code=tcode, api=None, adj='qfq', start_date=sdate, end_date=edate, asset='E', freq='D')
+    datadf = ts.pro_bar(ts_code=tcode, api=None, adj='qfq', start_date=sdate, asset='E', freq='D')
     datadf = datadf.sort_values(by='trade_date').reset_index(drop=True)
     datadf['ma_60'] = datadf['close'].rolling(window=60, center=False).mean()
     datadf['ma_250'] = datadf['close'].rolling(window=250, center=False).mean()
@@ -48,7 +48,7 @@ def drawmain():
     # 设置时间按“年月”的格式显示
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y%m'))
     # X轴按年进行标记，还可以用MonthLocator()和DayLocator()
-    plt.gca().xaxis.set_major_locator(mdates.YearLocator()),
+    plt.gca().xaxis.set_major_locator(mdates.YearLocator())
     # 自动旋转日期标记以避免重叠
     plt.gcf().autofmt_xdate()
     # 显示图例
@@ -65,14 +65,13 @@ def taskmain():
     api = ts.pro_api()
 
     for cd in tscode:
-        drawline(cd, startdate, enddate)
+        drawline(cd, startdate)
 
 
 # 指定起止日期
 startdate = '2010-02-27'
-enddate = '2021-10-15'
 # 指定股票代码
-tscode = {'601800.SH'}
+tscode = {'601318.SH'}
 # 主程序
 taskmain()
 drawmain()

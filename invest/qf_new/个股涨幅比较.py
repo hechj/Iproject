@@ -16,9 +16,9 @@ mpl.rcParams['font.sans-serif'] = ['SimHei']
 mpl.rcParams['axes.unicode_minus'] = False
 
 # 指定起止日期
-startdate = '20160104'
+startdate = '20131104'
 
-t_names = ['中国平安', '中国太保', '新华保险', '中国人寿']
+t_names = ['中国交建', '中国建筑', '中国铁建', '中国中铁', '建发股份']
 
 
 def drawline(names, sdate):
